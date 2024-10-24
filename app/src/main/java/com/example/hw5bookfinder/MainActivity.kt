@@ -89,14 +89,12 @@ fun BookSearchScreen(viewModel: BookViewModel, navController: NavHostController)
                 Text("Search")
             }
         }
-
         Button(
             onClick = { viewModel.loadSuggestedBooks() },
             modifier = Modifier.padding(8.dp)
         ) {
             Text("Back to Home")
         }
-
         if (books.isEmpty()) {
             Text("No books found.")
         } else {
@@ -152,26 +150,86 @@ fun BookItem(book: Book, onClick: () -> Unit) {
 fun BookDetailScreen(bookId: String, navController: NavHostController, viewModel: BookViewModel) {
     val books by viewModel.bookList.collectAsState()
     val book = books.find { it.id == bookId }
+    val configuration = LocalConfiguration.current
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        if (book != null) {
-            Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                Image(
-                    painter = rememberAsyncImagePainter(book.volumeInfo.imageLinks?.thumbnail),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().height(200.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "${book.volumeInfo.title}", style = MaterialTheme.typography.headlineMedium)
-                Text(text = "Authors: ${book.volumeInfo.authors?.joinToString(", ") ?: "Unknown"}", style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = book.volumeInfo.description ?: "No description available", style = MaterialTheme.typography.bodySmall)
+    if (book != null) {
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(modifier = Modifier.weight(1f)) {
+                    Image(
+                        painter = rememberAsyncImagePainter(book.volumeInfo.imageLinks?.thumbnail),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(200.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = "${book.volumeInfo.title}",
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        Text(
+                            text = "Authors: ${book.volumeInfo.authors?.joinToString(", ") ?: "Unknown"}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = book.volumeInfo.description ?: "No description available",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text("Back")
+                }
             }
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
-            ) {
-                Text("Back")
+        } else {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(book.volumeInfo.imageLinks?.thumbnail),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = book.volumeInfo.title,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    Text(
+                        text = "Author(s): ${book.volumeInfo.authors?.joinToString(", ") ?: "Unknown"}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = book.volumeInfo.description ?: "No description available",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text("Back")
+                }
             }
         }
     }
