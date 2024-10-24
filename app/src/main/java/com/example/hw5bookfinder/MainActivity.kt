@@ -83,12 +83,15 @@ fun BookSearchScreen(viewModel: BookViewModel, navController: NavHostController)
             }
         }
 
-        // Book list
-        LazyColumn {
-            items(books) { book ->
-                BookItem(book = book, onClick = {
-                    navController.navigate("book_detail/${book.id}")
-                })
+        if (books.isEmpty()) {
+            Text("No books found.")
+        } else {
+            LazyColumn {
+                items(books) { book ->
+                    BookItem(book = book, onClick = {
+                        navController.navigate("book_detail/${book.id}")
+                    })
+                }
             }
         }
     }

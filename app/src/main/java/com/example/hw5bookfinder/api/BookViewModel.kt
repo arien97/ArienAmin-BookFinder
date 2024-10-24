@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,10 +32,11 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     fun searchBooks(query: String) {
         viewModelScope.launch {
             try {
+                Log.d("BookViewModel", "Searching for books with query: $query")
                 isSearching.value = true
                 _bookList.value = repository.searchBooks(query, apiKey = "AIzaSyBgik7HfF4gQq-WY62XRZqD1mZ7UNGqum8")
+                Log.d("BookViewModel", "Search completed: ${_bookList.value.size} books found.")
             } catch (e: Exception) {
-                // Log the error
                 println("Error searching books: ${e.message}")
                 Log.e("BookViewModel", "Error searching books", e)
             }
@@ -44,10 +46,11 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     fun loadSuggestedBooks() {
         viewModelScope.launch {
             try {
+                Log.d("BookViewModel", "Loading suggested books")
                 isSearching.value = false
                 _bookList.value = repository.getSuggestedBooks(apiKey = "AIzaSyBgik7HfF4gQq-WY62XRZqD1mZ7UNGqum8")
+                Log.d("BookViewModel", "Suggested books loaded: ${_bookList.value.size} books found.")
             } catch (e: Exception) {
-                // Log the error
                 Log.e("BookViewModel", "Error loading suggested books", e)
             }
         }
