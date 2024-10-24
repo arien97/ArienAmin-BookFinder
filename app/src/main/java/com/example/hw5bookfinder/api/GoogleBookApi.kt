@@ -1,5 +1,6 @@
 package com.example.hw5bookfinder.api
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -27,6 +28,8 @@ class BookRepository(private val api: GoogleBooksApi) {
     }
 
     suspend fun searchBooks(query: String, apiKey: String): List<Book> {
+        val url = "https://www.googleapis.com/books/v1/volumes?q=$query&key=$apiKey"
+        Log.d("BookRepository", "API call URL: $url")
         val response = api.getBooks(query = query, apiKey = apiKey)
         return response.items ?: emptyList()
     }
@@ -48,5 +51,11 @@ fun createGoogleBooksApi(): GoogleBooksApi {
 // Data classes for JSON response
 data class BookResponse(val items: List<Book>?)
 data class Book(val id: String, val volumeInfo: VolumeInfo)
-data class VolumeInfo(val title: String, val authors: List<String>?, val imageLinks: ImageLinks?)
+data class VolumeInfo(
+    val title: String,
+    val authors: List<String>?,
+    val description: String?, // Add this line
+    val imageLinks: ImageLinks?
+)
+
 data class ImageLinks(val thumbnail: String?)

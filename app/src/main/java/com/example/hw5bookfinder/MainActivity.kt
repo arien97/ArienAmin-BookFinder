@@ -1,5 +1,6 @@
 package com.example.hw5bookfinder
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
@@ -9,12 +10,18 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -48,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("book_detail/{bookId}") { backStackEntry ->
                     val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
-                    BookDetailScreen(bookId = bookId, viewModel = viewModel)
+                    BookDetailScreen(bookId = bookId, navController = navController, viewModel = viewModel)
                 }
             }
         }
@@ -83,14 +90,35 @@ fun BookSearchScreen(viewModel: BookViewModel, navController: NavHostController)
             }
         }
 
+        Button(
+            onClick = { viewModel.loadSuggestedBooks() },
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text("Back to Home")
+        }
+
         if (books.isEmpty()) {
             Text("No books found.")
         } else {
-            LazyColumn {
-                items(books) { book ->
-                    BookItem(book = book, onClick = {
-                        navController.navigate("book_detail/${book.id}")
-                    })
+            val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+            if (isLandscape) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(books) { book ->
+                        BookItem(book = book, onClick = {
+                            navController.navigate("book_detail/${book.id}")
+                        })
+                    }
+                }
+            } else {
+                LazyColumn {
+                    items(books) { book ->
+                        BookItem(book = book, onClick = {
+                            navController.navigate("book_detail/${book.id}")
+                        })
+                    }
                 }
             }
         }
@@ -121,14 +149,30 @@ fun BookItem(book: Book, onClick: () -> Unit) {
 }
 
 @Composable
-fun BookDetailScreen(bookId: String, viewModel: BookViewModel) {
+fun BookDetailScreen(bookId: String, navController: NavHostController, viewModel: BookViewModel) {
     val books by viewModel.bookList.collectAsState()
     val book = books.find { it.id == bookId }
 
     Column(modifier = Modifier.padding(16.dp)) {
         if (book != null) {
-            Text(text = "Title: ${book.volumeInfo.title}")
-            Text(text = "Authors: ${book.volumeInfo.authors?.joinToString(", ") ?: "Unknown"}")
+            Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                Image(
+                    painter = rememberAsyncImagePainter(book.volumeInfo.imageLinks?.thumbnail),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(200.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "${book.volumeInfo.title}", style = MaterialTheme.typography.headlineMedium)
+                Text(text = "Authors: ${book.volumeInfo.authors?.joinToString(", ") ?: "Unknown"}", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = book.volumeInfo.description ?: "No description available", style = MaterialTheme.typography.bodySmall)
+            }
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
+            ) {
+                Text("Back")
+            }
         }
     }
 }
